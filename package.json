@@ -1,0 +1,24 @@
+{
+  "name": "workscheduler",
+  "version": "1.0.0",
+  "description": "Schedule jobs efficently",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KillerDucks/WorkScheduler.git"
+  },
+  "keywords": [
+    "Work",
+    "jobs",
+    "Scheduler"
+  ],
+  "author": "KillerDucks",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KillerDucks/WorkScheduler/issues"
+  },
+  "homepage": "https://github.com/KillerDucks/WorkScheduler#readme"
+}
