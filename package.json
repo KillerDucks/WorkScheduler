@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/KillerDucks/WorkScheduler/issues"
   },
-  "homepage": "https://github.com/KillerDucks/WorkScheduler#readme"
+  "homepage": "https://github.com/KillerDucks/WorkScheduler#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
 }
