@@ -36,7 +36,11 @@ class DB {
     }
 
     get DatabaseCollection(){
-        return this.dbName;
+        return this.collection;
+    }
+
+    get DatabaseURL(){
+        return this.url;
     }
 
     InsertData(dataObject){

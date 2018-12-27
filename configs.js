@@ -4,8 +4,11 @@ module.exports = {
     },
 
     API: {
+        // Used for Job settings bots
         BotUserNames: ["bot_fb", "bot_twit", "bot_disco", "bot_git"],
+        // Do bots need access tokens?
         NeedAccessToken: false,
+        // Quick way of making tokens (Change to users preference)
         GenToken: function(){
             var result, i, j;
             result = '';
