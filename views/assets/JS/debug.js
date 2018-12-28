@@ -23,8 +23,9 @@ $(() => {
                 if(true){
                     console.log(m.Payload);
                     // Change HTML
-                    $(".job_name").text(m.Payload.Name);
-                    $(".job_data").html(`Description: ${m.Payload.Description}<br/>TimeSpan: ${m.Payload.TimeSpan}`);
+                    $(".dataArea").append(`<div class="panel panel-info"><div class="panel-heading"><h3 class="panel-title job_name">${m.Payload.Name}</h3></div><div class="panel-body job_data">Description: ${m.Payload.Description}<br/>TimeSpan: ${m.Payload.TimeSpan}</div></div>`);
+                    // $(".job_name").text(m.Payload.Name);
+                    // $(".job_data").html(`Description: ${m.Payload.Description}<br/>TimeSpan: ${m.Payload.TimeSpan}`);
                 }
                 // } else {
                 //     console.log("Invalid Job Object");
