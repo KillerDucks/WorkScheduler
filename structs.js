@@ -9,6 +9,7 @@ class WsMessage {
 
 class Job {
     constructor(Name, Description, TimeSpan, Priority, Client){
+        this._ID = GenToken();
         this.Name = Name;
         this.Created_Time = Date.now();
         this.Priority = Priority;
@@ -19,11 +20,24 @@ class Job {
 }
 
 class Client {
-    constructor(Name, Email, Id){
+    constructor(Name, Email){
+        this._ID = GenToken();
         this.Name = Name;
         this.Email = Email;
-        this.Id = Id;
     }
 }
 
 module.exports = { Client, Job, WsMessage };
+
+// Helper
+function GenToken(){
+    var result, i, j;
+    result = '';
+    for(j=0; j<32; j++) {
+        if( j == 8 || j == 12 || j == 16 || j == 20) 
+        result = result;
+        i = Math.floor(Math.random()*16).toString(16).toUpperCase();
+        result = result + i;
+    }
+    return result;
+}
