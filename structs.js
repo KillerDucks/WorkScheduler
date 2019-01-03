@@ -27,7 +27,14 @@ class Client {
     }
 }
 
-module.exports = { Client, Job, WsMessage };
+class DBSearch {
+    constructor(Key, Value){
+        this.Key = Key;
+        this.Value = Value;
+    }
+}
+
+module.exports = { Client, Job, WsMessage, DBSearch };
 
 // Helper
 function GenToken(){
