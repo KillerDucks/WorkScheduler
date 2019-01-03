@@ -1,7 +1,7 @@
 $(() => {
     const ws = new WebSocket("ws://localhost:8080");
     ws.onopen = (e) => {
-        ws.send("Connection Established")
+        // ws.send("Connection Established")
     }
     ws.onmessage = (e) => {
         // console.log(e); // Debug Print
@@ -27,9 +27,6 @@ $(() => {
                     // $(".job_name").text(m.Payload.Name);
                     // $(".job_data").html(`Description: ${m.Payload.Description}<br/>TimeSpan: ${m.Payload.TimeSpan}`);
                 }
-                // } else {
-                //     console.log("Invalid Job Object");
-                // }
                 break;
         
             default:
@@ -37,4 +34,18 @@ $(() => {
                 break;
         }
     };
+
+    // Button Click Event
+    $(".search").click(() => {
+        ws.send(JSON.stringify(new WsMessage("Get_Job", false, {"Request_ID": $(".jobID").val()})))
+    });
+
+    class WsMessage {
+        constructor(type, Encrypted, Payload){
+            this.Type = type;
+            this.Timestamp = Date.now();
+            this.Encrypted = Encrypted;
+            this.Payload = Payload;
+        }
+    }
 });
