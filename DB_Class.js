@@ -2,10 +2,13 @@ const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
 class DB {
-    constructor(url, database, collection, Quiet = false ,LoggerX = false){
+    constructor(url, database, collection, Quiet = false, LoggerX = false, Debug = false){
         this.url = `mongodb://${url}:27017`;
         this.dbName = database;
         this.collection = collection;
+
+        this.Debug = Debug;
+
         this.Quiet = Quiet;
         this.LoggerX = LoggerX;
         this.Log = undefined;
@@ -15,97 +18,6 @@ class DB {
             let LoggerX = this.LoggerX;
             this.Log = function(data){ LoggerX.Log(data) }
         }
-    }
-
-    JSONResult(data, override = false)
-    {
-        // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
-
-        MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
-            assert.equal(null, err);
-            console.log("[MongoDB::Retrieval]\tConnected successfully to server");
-
-            const db = client.db(dbName);
-
-            // Get the documents collection
-            let collection;
-            if(override){
-                collection = db.collection(override);
-            } else {
-                collection = db.collection(dbCollection);
-            }
-
-            collection.find({}).toArray(function(err, docs) {
-                assert.equal(err, null);   
-                console.log(`[MongoDB::Retrieval]\tReturning Found Data`);   
-                data(docs);
-                client.close();
-            });            
-        });
-    }
-
-    JSONResultSingle(singleQuery, data, override = false)
-    {
-        // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
-
-        MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
-            assert.equal(null, err);
-            console.log("[MongoDB::Retrieval]\tConnected successfully to server");
-
-            const db = client.db(dbName);
-            
-            // Get the documents collection
-            let collection;
-            if(override){
-                collection = db.collection(override);
-            } else {
-                collection = db.collection(dbCollection);
-            }
-
-            collection.find({}).toArray(function(err, docs) {
-                assert.equal(err, null);      
-                if(singleQuery != ""){
-                    docs.forEach((doc) => {
-                        if(doc[singleQuery.Key] == singleQuery.Value){                            
-                            console.log(`[MongoDB::Retrieval]\tFound Data with ID => ${doc._ID}`);
-                            data(doc);
-                            return;
-                        }                
-                    });
-                } else {
-                    data("EMPTY");
-                }
-                client.close();
-            });            
-        });
-    }
-
-    get PrintData() 
-    {
-        // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
-
-        MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
-            assert.equal(null, err);
-            console.log("[MongoDB::Retrieval]\tConnected successfully to server");
-        
-            const db = client.db(dbName);
-            // Get the documents collection
-            const collection = db.collection(dbCollection);
-
-            collection.find({}).toArray(function(err, docs) {
-                assert.equal(err, null);      
-                docs.forEach(doc => {
-                    console.log(doc);
-                }); 
-                client.close();
-            });            
-        });
     }
 
     get DatabaseName(){
@@ -120,100 +32,133 @@ class DB {
         return this.url;
     }
 
-    InsertData(dataObject, callback, override = false){
+    /////// Newer Version of the Database Class
+
+    _DatabaseExecutor(override, _connection)
+    {
         // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
-        let Log = this.Log;        
+        const Env = this._SetEnvironment();
 
         MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
             assert.equal(null, err);
-            // console.log("[MongoDB::Insert]\tConnected successfully to server");
-            Log({Namespace: "MongoDB_Insert", Info: "Connected successfully to server"});
-            const db = client.db(dbName);
+            if(Env.Debug) console.log("[MongoDB::Connection]\tConnected successfully to server");
+            if(!Env.Debug) Env.Log({Namespace: "MongoDB_Connection", Info: "Connected successfully to server"});
+            const db = client.db(Env.dbName);
             
             // Get the documents collection
             let collection;
             if(override){
                 collection = db.collection(override);
             } else {
-                collection = db.collection(dbCollection);
+                collection = db.collection(Env.dbCollection);
             }
 
-            collection.insertOne(dataObject, (err, res) => {
-                if(err) throw err;
-                // console.log(res);    Debug Print
-                if(res.insertedCount != 1) console.log(`[MongoDB::Insert]\tFailed Inserting Data with ID => ${dataObject._ID}`);
-                // console.log(`[MongoDB::Insert]\tDone Inserting Data with ID => ${dataObject._ID}\n\t\t\tMongo ID => ${res.insertedId}`);
-                Log({Namespace: "MongoDB_Insert", Info: `Done Inserting Data with ID => ${dataObject._ID}\n\t\t\tMongo ID => ${res.insertedId}`});
-                callback(res.insertedCount);
-            });
-            
-            client.close();
-        });
-    }
-
-    UpdateData(dataID, updateObject, override = false){
-        // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
-
-        MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
-            assert.equal(null, err);
-            console.log("[MongoDB::Update]\tConnected successfully to server");
-            const db = client.db(dbName);
-            
-            // Get the documents collection
-            let collection;
-            if(override){
-                collection = db.collection(override);
-            } else {
-                collection = db.collection(dbCollection);
-            }
-
-            collection.updateOne({_ID: dataID}, {$set: updateObject, $set: {Updated: Date.now()}}, (err, res) => {
-                if(err) throw err;
-                // console.log(res.deletedCount);    //Debug Print
-                if(res.modifiedCount == 1){
-                    console.log(`[MongoDB::Update]\tDone Updating Data with ID => ${dataID}`);
-                } else {
-                    console.log(`[MongoDB::Update]\tFailed to Update Data with ID => ${dataID}`);
-                }
-            });
+            _connection(collection);
 
             client.close();
         });
     }
 
-    DeleteData(dataID, override = false){
+    _SetEnvironment()
+    {
         // Localize this
-        let dbName = this.dbName;
-        let dbCollection = this.collection;
+        let Env = {};
+        Env.dbName = this.dbName;
+        Env.dbCollection = this.collection;
+        Env.Log = this.Log; 
+        Env.Debug = this.Debug;
+        return Env;
+    }
 
-        MongoClient.connect(this.url, { useNewUrlParser: true }, function(err, client) {
-            assert.equal(null, err);
-            console.log("[MongoDB::Delete]\tConnected successfully to server");
-            const db = client.db(dbName);
-            
-            // Get the documents collection
-            let collection;
-            if(override){
-                collection = db.collection(override);
-            } else {
-                collection = db.collection(dbCollection);
-            }
+    GetSingleRow(query, data, override = false)
+    {
+        // Localize this
+        const Env = this._SetEnvironment();
 
+        this._DatabaseExecutor(override, (collection) => {
+            collection.find(query).toArray(function(err, doc) {
+                assert.equal(err, null);      
+                if(query == "") data(0);
+                if(Env.Debug) console.log(`[MongoDB::RetrievalS]\tFound Data with ID => ${doc[0]._ID}`);
+                if(!Env.Debug) Env.Log({Namespace: "MongoDB_RetrievalS", Info: `Found Data with ID => ${doc[0]._ID}`});
+                data(doc[0]);
+            });
+        });
+    }
+
+    GetAllRows(data, override = false)
+    {
+        // Localize this
+        const Env = this._SetEnvironment();
+
+        this._DatabaseExecutor(override, (collection) => {
+            collection.find({}).toArray(function(err, docs) {
+                assert.equal(err, null);      
+                if(Env.Debug) console.log("[MongoDB::Retrieval]\tReturning Found Data");
+                if(!Env.Debug) Env.Log({Namespace: "MongoDB_Retrieval", Info: "Returning Found Data"});
+                data(docs);
+            });
+        });
+    }
+
+    DeleteSingle(dataID, data, override = false)
+    {
+        // Localize this
+        const Env = this._SetEnvironment();
+
+        this._DatabaseExecutor(override, (collection) =>{
             collection.deleteOne({_ID: dataID}, (err, res) => {
                 if(err) throw err;
                 // console.log(res.deletedCount);    //Debug Print
                 if(res.deletedCount == 1){
-                    console.log(`[MongoDB::Delete]\tDone Deleting Data with ID => ${dataID}`);
+                    if(Env.Debug) console.log(`[MongoDB::Delete]\tDone Deleting Data with ID => ${dataID}`);
+                    if(!Env.Debug) Env.Log({Namespace: "MongoDB_Insert", Info: `Done Deleting Data with ID => ${dataID}`});
+                    data(1);
                 } else {
-                    console.log(`[MongoDB::Delete]\tFailed to Delete Data with ID => ${dataID}`);
+                    if(Env.Debug) console.log(`[MongoDB::Delete]\tFailed to Delete Data with ID => ${dataID}`);
+                    if(!Env.Debug) Env.Log({Namespace: "MongoDB_Insert", Info: `Failed to Delete Data with ID => ${dataID}`});
+                    data(0);
                 }
             });
+        });
+    }
 
-            client.close();
+    UpdateRow(query, updateObject, data, override = false)
+    {
+        // Localize this
+        const Env = this._SetEnvironment();
+
+        this._DatabaseExecutor(override, (collection) => {
+            collection.updateOne(query, {$set: updateObject, $set: {Updated: Date.now()}}, (err, res) => {
+                if(err) throw err;
+                // console.log(res.deletedCount);    //Debug Print
+                if(res.modifiedCount == 1){
+                    if(Env.Debug) console.log(`[MongoDB::Update]\tDone Updating Data with ID => ${dataID}`);
+                    if(!Env.Debug) Env.Log({Namespace: "MongoDB_Update", Info: `Done Updating Data with ID => ${dataID}`});
+                    data(1);
+                } else {
+                    console.log(`[MongoDB::Update]\tFailed to Update Data with ID => ${dataID}`);
+                    if(Env.Debug) console.log(`[MongoDB::Update]\tFailed to Update Data with ID => ${dataID}`);
+                    if(!Env.Debug) Env.Log({Namespace: "MongoDB_Update", Info: `Failed to Update Data with ID => ${dataID}`});
+                    data(0);
+                }
+            });
+        });
+    }
+
+    InsertRow(dataObject, data, override = false)
+    {
+         // Localize this
+         const Env = this._SetEnvironment();
+
+         this._DatabaseExecutor(override, (collection) => {
+            collection.insertOne(dataObject, (err, res) => {
+                if(err) throw err;
+                if(res.insertedCount != 1) Env.Log({Namespace: "MongoDB_Insert", Info: `[MongoDB::Insert]\tFailed Inserting Data with ID => ${dataObject._ID}`});
+                if(Env.Debug) console.log(`[MongoDB::Insert]\tDone Inserting Data with ID => ${dataObject._ID}\n\t\t\tMongo ID => ${res.insertedId}`);
+                if(!Env.Debug) Env.Log({Namespace: "MongoDB_Insert", Info: `Done Inserting Data with ID => ${dataObject._ID}\n\t\t\tMongo ID => ${res.insertedId}`});
+                data(res.insertedCount);
+            });
         });
     }
 }
