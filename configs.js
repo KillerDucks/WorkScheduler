@@ -7,6 +7,10 @@ module.exports = {
         Host: "localhost"
     },
 
+    MongoDB_Docker: {
+        Host: "172.17.153.138"
+    },
+
     API: {
         // Used for Job settings bots
         BotUserNames: ["bot_fb", "bot_twit", "bot_disco", "bot_git"],
@@ -24,5 +28,10 @@ module.exports = {
             }
             return result;
         }
+    },
+
+    Debugging: {
+        Enabled: true,
+        Env: false
     }
 }
