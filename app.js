@@ -6,11 +6,14 @@ const Structs = require("./structs");
 const Config = require("./configs");
 const DB = require("./DB_Class");
 
+const Logger = require("./App_Logger/Logger");
+
 // Configs
 const wss = new ws.Server({ port: 8080 });
 const app = express();
 app.use("/assets", express.static(__dirname + "/views/assets"));
-const dbConn = new DB("localhost", "WorkScheduler", "Jobs");
+const LoggerX = new Logger({_Type: Logger.StorageType().MongoDB, _Connection: new DB((Config.Debugging.Env) ? Config.MongoDB_Docker.Host : Config.MongoDB.Host, "WorkScheduler", "Jobs", true)}, Config.API.GenToken());
+const dbConn = new DB((Config.Debugging.Env) ? Config.MongoDB_Docker.Host : Config.MongoDB.Host, "WorkScheduler", "Jobs", false, LoggerX);
 
 // Globals
 
@@ -18,13 +21,14 @@ const dbConn = new DB("localhost", "WorkScheduler", "Jobs");
 // Main Entry
 
 ////////////////////// WebSockets //////////////////////
-wss.on('connection', function connection(ws) {
+wss.on('connection', function connection(ws, req) {
     // Incoming Message
     ws.on('message', function incoming(message) {
         // Decode Message
         try {
             let m = JSON.parse(message);
-            console.log('[WebSocket::Message]\tReceived Message Type: %s', m.Type);
+            // console.log('[WebSocket::Message]\tReceived Message Type: %s', m.Type);
+            LoggerX.Log({Namespace: "WebSocket_Message", Info: `Received Message Type: ${m.Type}`});
             switch (m.Type) {
                 // Job Related Types
                 case "Update_Job":
@@ -71,6 +75,7 @@ wss.on('connection', function connection(ws) {
             }
         } catch (error) {
             console.log(`[WebSocket::Error]\tError: ${error}`);
+            LoggerX.Log({Namespace: "WebSocket_Error", Info: `Error Thrown: ${error}`});
         }
     });
 
@@ -82,20 +87,21 @@ wss.on('connection', function connection(ws) {
     //         ws.send(JSON.stringify(debugMessage));     
     //     });
     // });
-    console.log("[Debugging}\tWS Client Connected!!");
+
+    LoggerX.Log({Namespace: "WebSocket_Connection", Info: `Client Connected [IP] => ${req.socket.remoteAddress}`});
 });
 
 ////////////////////// FrontEnd Routes //////////////////////
 
 // FrontEnd Page
 app.get('/', (req, res) => {
-    console.log(`[Express::/]\tServed / to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`); 
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served / to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});
     res.sendFile(__dirname + "/views/index.html");    
 });
 
 // Used for JS Debugging
 app.get('/debug', (req, res) => {
-    console.log(`[Express::/]\tServed /debug to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`); 
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served /debug to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});
     res.sendFile(__dirname + "/views/debugJS.html");    
 });
 
@@ -103,7 +109,7 @@ app.get('/debug', (req, res) => {
 
 // Get all Jobs
 app.get('/jobs', (req, res) => {
-    console.log(`[Express::/]\tServed /jobs to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`);
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served [API] /jobs to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});    
     dbConn.JSONResult((data) => {
         res.status(200).json(data);
     });    
@@ -111,15 +117,15 @@ app.get('/jobs', (req, res) => {
 
 // Get a Job (Using an ID)
 app.get('/job/:jobID', (req, res) => {
-    console.log(`[Express::/]\tServed /job/:jobID to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`); 
-    dbConn.JSONResultSingle(req.params.jobID, (data) => {
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served [API] /job/:jobID to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});
+    dbConn.JSONResultSingle({_ID: req.params.jobID}, (data) => {
         res.status(200).json(data);
     });  
 });
 
 // Get all Clients
 app.get('/clients', (req, res) => {
-    console.log(`[Express::/]\tServed /clients to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`);
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served [API] /clients to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});
     dbConn.JSONResult((data) => {
         res.status(200).json(data);
     }, "Clients");    
@@ -127,8 +133,8 @@ app.get('/clients', (req, res) => {
 
 // Get a Client (Using an ID)
 app.get('/client/:clientID', (req, res) => {
-    console.log(`[Express::/]\tServed /client/clientID to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`); 
-    dbConn.JSONResultSingle(req.params.clientID, (data) => {
+    LoggerX.Log({Namespace: "Express_Route", Info: `Served [API] /client/:clientID to: [${req.connection.remoteFamily}] ${req.connection.remoteAddress}:${req.connection.remotePort}`});
+    dbConn.JSONResultSingle({_ID: req.params.clientID}, (data) => {
         res.status(200).json(data);
     }, "Clients");  
 });
@@ -137,5 +143,5 @@ app.get('/client/:clientID', (req, res) => {
 
 // Listen on Port and Serve Client
 app.listen(Config.Express.Port, () => {
-    console.log(`[Express]\tApp Serving on port: ${Config.Express.Port}`);
+    LoggerX.Log({Namespace: "Express_Server", Info: `App Serving on port: ${Config.Express.Port}`});
 });
