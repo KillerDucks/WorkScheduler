@@ -30,9 +30,9 @@ class Logger {
 
         switch (this._storage._Type) {
             case 0:                
-                this._storage._Connection.InsertData(data, (status) => {
+                this._storage._Connection.InsertRow(data, (status) => {
                     if(!status) throw new Error((`[LoggerX_DB]\t Unable to Insert Log into Database!!`));
-                } ,"LoggerX");                
+                }, "LoggerX");                
                 break;
             case 1:
                 break;

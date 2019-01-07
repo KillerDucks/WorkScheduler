@@ -79,10 +79,11 @@ class DB_Flood {
         for (let index = 0; index < rInt; index++) {
             let client = new Structs.Client("Killer" + randomWorkFromArray(), "SampleDuck@bindserver.com");
             let sampleJob = new Structs.Job("WorkScheduler_DB_FLOODER", `${randomWorkFromArray()} ${randomWorkFromArray()} ${randomWorkFromArray()}!!`, `${randomIntFromInterval(1, 20)} Weeks`, randomIntFromInterval(1, 10), client);
-            this.db_con.InsertData(sampleJob, (status) => {
+            
+            this.db_con.InsertRow(sampleJob, (status) => {
                 if(!status) throw new Error("\n[DB::Flooder::Insert]\tFailed to Insert to the DB!!\n")
             });
-            this.db_con.InsertData(client, (status) => {
+            this.db_con.InsertRow(client, (status) => {
                 if(!status) throw new Error("\n[DB::Flooder::Insert]\tFailed to Insert to the DB!!\n")
             } ,"Clients");
         }
