@@ -12,6 +12,7 @@
 ## Logger.js
 + Create a Application Logger ✅ [ `3/1/2019` ]
 + Add it to all operations ✅ [ `3/1/2019` ] [Partially]
++ Complete the implementations of the other storage methods 
 
 ## DB_Class.js
 + Add a status callback to `insertData()` ✅ [ `4/1/2019` ]
@@ -19,6 +20,10 @@
 + Create a *Delete* function ✅ [ `3/1/2019` ]
 + Change the way `JSONResultSingle()` searches for data using the MongoDB Query Filter ✅ [ `7/1/2019` ]
 + Refactor the Class ✅ [ `7/1/2019` ]
+
+## Prioritiser_Class.js
++ Create the fulfilment functions
++ Sort out the time difference helpers  
 
 ## DockerFile
 + Add alpine:8 and create node image
