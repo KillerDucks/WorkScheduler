@@ -76,26 +76,9 @@ class Logger {
 
             case 1:
                 // JSON File.
-                // JSON formatting checkers
-                // if(this._isFirstLine)
-                // {
-                //     require('fs').writeFile(`./${this._log_Folder}/${this._log_Filename}.json` , '[\n\t' + JSON.stringify(data), {encoding: 'utf8', flag: 'a'}, (err) => {
-                //         if(err) throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_FileWriter]\t Unable to Write Log into File: ${this._log_Filename}!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
-                //     });  
-                //     this._isFirstLine = false;
-                // } else {
-                //     require('fs').writeFile(`./${this._log_Folder}/${this._log_Filename}.json` , `,\n` + JSON.stringify(data), {encoding: 'utf8', flag: 'a'}, (err) => {
-                //         if(err) throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_FileWriter]\t Unable to Write Log into File: ${this._log_Filename}!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
-                //     });
-                // }
                 // Check for JSON file writer
-                if(!this._json_file_writer)
-                {
-                    throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_JSON_File_Writer]\t There is no File Stream Context!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
-                    break;
-                }
-                if(!this._json_file_writer.writable){
-                    throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_JSON_File_Writer]\t Unable to Write Log into File: ${this._log_Filename}!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
+                if(!this.CheckFileStream())
+                { 
                     break;
                 }
                 if(this._isFirstLine)
@@ -156,9 +139,11 @@ class Logger {
     {
         if(!this._json_file_writer)
         {
+            throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_JSON_File_Writer]\t There is no File Stream Context!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
             return false;
         }
         if(!this._json_file_writer.writable){
+            throw new Error(`[FATAL ERROR] ${data.TimeStamp} [LoggerX_JSON_File_Writer]\t Unable to Write Log into File: ${this._log_Filename}!!\n\t\t\t[FATAL ERROR] [LoggerX] => [Internal System] Module Panic\nQuitting...`);
             return false;
         }
 
