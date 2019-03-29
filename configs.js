@@ -31,7 +31,7 @@ module.exports = {
     },
 
     Debugging: {
-        Enabled: true,
+        Enabled: false,
         Env: false
     }
 }
